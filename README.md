@@ -9,6 +9,9 @@ MP - total minutes played in the game
 FG - number of field goals made
 FGA - number of field goals attempted
 FGP - percentage of field goals made
+TP - three pointers made
+TPA - three pointers attempted
+TPP - percentage of three pointers made
 FT - number of free throws made
 FTA - number of free throws attempted
 FTP - percentage of free throws made
