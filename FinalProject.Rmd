@@ -1,0 +1,182 @@
+---
+title: "Finalproject"
+author: "Ravi G and Rohit K"
+date: "3/8/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+library(pROC)
+library(plotROC)
+```
+Background:
+Every year, the National Basketball Association (NBA) ends the season with a series of championship games between the two best teams in the league. The series is a best-of-7, where the first team to win 4 games is the winner of the series. The championship is a very important accolade, both teams and players are compared by the number of championships they have won. In these comparisons, statistics like field goal percentage, offensive rebounds, steals, and blocks can be used to determine a team’s performance and be an indicator of how
+much better one team is than another. Statistics in the NBA are highly analyzed, very often before a championship game to try to predict the outcome of the game. Our group wants to create a model that will be able to predict whether or not a team wins the NBA championship given the team’s statistics during the NBA finals game. We want to find weights for each statistic that can show us how important each statistic is to predicting the overall winner, which helps our group conduct a greater analysis of how different focuses and strategies can affect the outcome of NBA games. Our group believes that certain statistics such as field goal percentage,
+turnovers, and offensive rebounds will be prevalent in winning NBA teams.
+Data:
+The dataset with which we want to create our model is the NBA Finals Team Stats dataset on Kaggle uploaded by Dave Rosenman. The dataset contains final data from 1980 to 2018, and is divided into two tables. The first table contains the data of each winning team and
+the second contains the losing team. Each observation includes data points like field goals made, field goals attempted, three point shots made, free throws made, total rebounds, assists,
+steals, turnovers, blocks, and many other statistics that will be covered in the data summary. It is important to note that each observation is one game in the championship series, teams can lose
+up to 3 games in the series and still win the championship, so even the championship game data contains losses.
+```{r}
+champs_data <- read_csv("data/champs_series_averages.csv")
+runnerups_data <- read_csv("data/runner_ups_series_averages.csv")
+
+```
+```{r}
+champs_data <- champs_data %>%
+  mutate(win = "1")
+runnerups_data <- runnerups_data %>%
+  mutate(win = "0")
+```
+```{r}
+all_data <- rbind(champs_data, runnerups_data)
+```
+```{r}
+useful_data = subset(all_data, select = -c(...1,Year, Status, Team, FT, FTA, FTP, TRB) )
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = PTS)) +   geom_histogram(binwidth = 4) + 
+  labs(x = "Points", 
+       y = "Count", 
+       title = "Point Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = PTS)) +   geom_histogram(binwidth = 4) + 
+  labs(x = "Points", 
+       y = "Count", 
+       title = "Point Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = FG)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "FG", 
+       y = "Count", 
+       title = "FG Made Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = FG)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "FG", 
+       y = "Count", 
+       title = "FG Made Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = FGA)) +   geom_histogram(binwidth = 3) + 
+  labs(x = "FGA", 
+       y = "Count", 
+       title = "FG Attempted Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = FGA)) +   geom_histogram(binwidth = 3) + 
+  labs(x = "FGA", 
+       y = "Count", 
+       title = "FG Attempted Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = FGP)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "FGP", 
+       y = "Count", 
+       title = "FG Percentage Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = FGP)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "FGP", 
+       y = "Count", 
+       title = "FG Percentage Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = TP)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "TP", 
+       y = "Count", 
+       title = "Three Point Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = TP)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "TP", 
+       y = "Count", 
+       title = "Three Point Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = TPA)) +   geom_histogram(binwidth = 3) + 
+  labs(x = "TPA", 
+       y = "Count", 
+       title = "Point Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = TPA)) +   geom_histogram(binwidth = 3) + 
+  labs(x = "TPA", 
+       y = "Count", 
+       title = "TP Attempted Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = TPP)) +   geom_histogram(binwidth = 4) + 
+  labs(x = "TP Percentage", 
+       y = "Count", 
+       title = "TP Percentage Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = TPP)) +   geom_histogram(binwidth = 4) + 
+  labs(x = "TP Percentage", 
+       y = "Count", 
+       title = "TP Percentage Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = ORB)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "ORB", 
+       y = "Count", 
+       title = "Offensive Rebounds Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = ORB)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "ORB", 
+       y = "Count", 
+       title = "Offensive Rebounds Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = DRB)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "DRB", 
+       y = "Count", 
+       title = "Defensive Rebound Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = DRB)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "DRB", 
+       y = "Count", 
+       title = "Defensive Rebound Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = AST)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "AST", 
+       y = "Count", 
+       title = "Assists Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = AST)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "AST", 
+       y = "Count", 
+       title = "Assists Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = STL)) +   geom_histogram(binwidth = 1) + 
+  labs(x = "STL", 
+       y = "Count", 
+       title = "Steals Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = STL)) +   geom_histogram(binwidth = 1) + 
+  labs(x = "STL", 
+       y = "Count", 
+       title = "Steals Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = BLK)) +   geom_histogram(binwidth = 1) + 
+  labs(x = "BLK", 
+       y = "Count", 
+       title = "Block Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = BLK)) +   geom_histogram(binwidth = 1) + 
+  labs(x = "BLK", 
+       y = "Count", 
+       title = "Block Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = TOV)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "TOV", 
+       y = "Count", 
+       title = "Turnovers Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = TOV)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "TOV", 
+       y = "Count", 
+       title = "Turnovers Distribution")
+```
+```{r}
+ggplot(data = useful_data %>% filter(win == 1), aes(x = PF)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "PF", 
+       y = "Count", 
+       title = "Personal Foul Distribution")
+ggplot(data = useful_data %>% filter(win == 0), aes(x = PF)) +   geom_histogram(binwidth = 2) + 
+  labs(x = "PF", 
+       y = "Count", 
+       title = "Personal Foul Distribution")
+```
