@@ -210,11 +210,124 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = PF)) +   geom_histogram(
        title = "Personal Foul Distribution")
 ```
 
-Now that we have checked that the distributions of the variables are somewhat normal, we can create a model and check the residuals. 
-
-Our model will be a binomial model (only options are 0 ad 1). 
+Now that we have checked that the distributions of the variables are somewhat normal, we can create a model and check the residuals. Our model will be a binomial model (only options are 0 ad 1). 
 
 ```{r}
 
+useful_data$win <- as.factor(useful_data$win)
+
+model <- glm(win ~ PTS + FG + FGA + FGP + TP + TPA + TPP + ORB + DRB + AST + STL + BLK + TOV + PF, useful_data, family=binomial)
+
+summary(model)
+```
+
+```{r}
+
+model_data <- augment(model, useful_data)
+head(model_data)
+```
+
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=PTS)) + geom_point() +
+  labs(x="Residuals",
+       y="Points",
+       title="Residual Plot of Points")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=FG)) + geom_point() +
+  labs(x="Residuals",
+       y="Field Goals",
+       title="Residual Plot of Field Goals")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=FGA)) + geom_point() +
+  labs(x="Residuals",
+       y="Field Goal Attemps",
+       title="Residual Plot of Field Goal Attempts")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=FGP)) + geom_point() +
+  labs(x="Residuals",
+       y="Field Goal Percentage",
+       title="Residual Plot of Points")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=TP)) + geom_point() +
+  labs(x="Residuals",
+       y="Three Pointers",
+       title="Residual Plot of Three Pointers")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=TPA)) + geom_point() +
+  labs(x="Residuals",
+       y="Three Point Attempts",
+       title="Residual Plot of Three Point Attemps")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=TPP)) + geom_point() +
+  labs(x="Residuals",
+       y="Three Point Percentage",
+       title="Residual Plot of Three Point %")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=ORB)) + geom_point() +
+  labs(x="Residuals",
+       y="Offensive Rebounds",
+       title="Residual Plot of Offensive Rebounds")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=DRB)) + geom_point() +
+  labs(x="Residuals",
+       y="Defensive Rebounds",
+       title="Residual Plot of Defensive Rebounds")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=AST)) + geom_point() +
+  labs(x="Residuals",
+       y="Assists",
+       title="Residual Plot of Assists")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=STL)) + geom_point() +
+  labs(x="Residuals",
+       y="Steals",
+       title="Residual Plot of Steals")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=BLK)) + geom_point() +
+  labs(x="Residuals",
+       y="Blocks",
+       title="Residual Plot of Blocks")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=TOV)) + geom_point() +
+  labs(x="Residuals",
+       y="Turnovers",
+       title="Residual Plot of Turnovers")
+```
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=.resid, y=PF)) + geom_point() +
+  labs(x="Residuals",
+       y="PF",
+       title="Residual Plot of PF")
+```
+
+The residual plots for each variable appear to be random and evenly dispersed, which means that the linearity assumption is satisfied. Before we can test the accuracy of the model, we must also explore how these observations affect the model, and how the variables used in the model affect each other. First, we can plot the leverage (.cooksd) of each observation to see if there are any high-leverage data points. 
+
+```{r, fig.dim=c(3,2)}
+ggplot(data = model_data, aes(x=seq.int(nrow(model_data)), y=.cooksd)) + geom_point() + 
+  labs(x="Observation",
+       y="Cook's Distance",
+       title="Cook's Distance of each Observation") + 
+  geom_hline(yintercept=0.125)
+```
+
+It is obvious that there are two high-leverage data points. If we use a threshold of 0.125, we can eliminate these two high-leverage points to make the model better at prediction.
+
+```{r}
+
+filter_data <- filter(model_data, .cooksd < 0.125)
 
 ```
+
+The next step is to check how the variables interact with each other. 
