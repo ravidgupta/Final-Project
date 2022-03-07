@@ -14,6 +14,7 @@ library(broom)
 library(pROC)
 library(plotROC)
 library(rms)
+library(caret)
 ```
 # Background:
 Every year, the National Basketball Association (NBA) ends the season with a series of championship games between the two best teams in the league. The series is a best-of-7, where the first team to win 4 games is the winner of the series. The championship is a very important accolade, both teams and players are compared by the number of championships they have won. In these comparisons, statistics like field goal percentage, offensive rebounds, steals, and blocks can be used to determine a team’s performance and be an indicator of how
@@ -38,6 +39,7 @@ library(broom)
 library(pROC)
 library(plotROC)
 library(rms)
+library(caret)
 ```
 
 
@@ -355,5 +357,51 @@ vif(filter_model)
 
 These values for VIF are extremely high because there are variables that measure similar statistics. However, because there are columns like ```FG```, ```FGA```, and ```FGP``` which represent field goals made, field goal attempts, and field goal percentage; a high VIF is not a concern for these variables. The same logic can be applied to ```TP```, ```TPA``` and ```TPP```, which measure the three point attempts and the three point percentage. Therefore, we will proceed with measuring the success of the model. 
 
-## Model Assessment and Prediction
+# Model Assessment and Prediction
 
+```{r}
+
+final_model <- filter_model
+```
+Now that the model has been refined, we can check the accuracy of the model, make predictions about NBA games, and draw conclusions about which statistics are most important in the NBA finals. 
+
+Our first step is to check the accuracy of the model. To do this, we will first create an ROC curve and calculate the best threshold for ```pred``` that we can use to make predictions.
+
+```{r, fig.dim=c(3,2)}
+
+roc_curve <- roc(filter_data, win, .fitted, plot=TRUE)
+
+```
+```{r}
+
+threshold <- coords(roc_curve, "best", ret = "threshold")
+print(threshold)
+```
+
+The ideal threshold has been shown as ```-0.3855574```. Using this threshold, we can create a confusion matrix and draw conclusions about the accuracy of the model. 
+
+```{r}
+filter_data <- mutate(filter_data, pred = ifelse(.fitted > -0.3855574, 1, 0))
+
+filter_data$pred <- as.factor(filter_data$pred)
+
+confusionMatrix(filter_data$pred, filter_data$win)
+```
+
+The accuracy of the model is 87.84%.
+
+# Conclusion
+
+```{r}
+summary(final_model)
+```
+
+By using this model, we can predict whether or not an NBA team won a finals series given their statistics from the series with an accuracy of 87.64%, making the model useful (better than guessing win or lose for each year). To refine this model more, we can perform the same analysis on all 22 variables given from the original data set, and have a solution for the high $VIF$ found due to the similarity of some measurements during games. 
+
+## Observations
+
+It is worth noting that, while the coefficients for most variables make sense (ie. turnovers having a negative coefficient and field goals having a positive coefficient), others have a surprising effect on the model. 
+
+For example, the coefficients for points (```PTS```) and assists (```AST```) are both negative, implying that more points and more assists indicate a lesser likelihood that a team won the game. This can be attributed to the fact that basketball is a game that cannot be won by statistics: even if a team scores a high number of points, a bad defense can still lose them the series. 
+
+Some variables with high coefficients include: Offensive Rebounds (```ORB```), Steals (```STL```), and Field Goals Made(```FG```). These all seem to be good at indicating whether or not teams won the series, which is fascinating because they cover different aspects of the game. A team cannot solely rely on shooting, defense, or size (in the case of offensive rebounds) to win a championship; they must have all aspects of the game.
