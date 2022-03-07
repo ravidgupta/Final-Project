@@ -13,14 +13,15 @@ library(tidyverse)
 library(broom)
 library(pROC)
 library(plotROC)
+library(rms)
 ```
-## Background:
+# Background:
 Every year, the National Basketball Association (NBA) ends the season with a series of championship games between the two best teams in the league. The series is a best-of-7, where the first team to win 4 games is the winner of the series. The championship is a very important accolade, both teams and players are compared by the number of championships they have won. In these comparisons, statistics like field goal percentage, offensive rebounds, steals, and blocks can be used to determine a team’s performance and be an indicator of how
 much better one team is than another. 
 
 Statistics in the NBA are highly analyzed, very often before a championship game to try to predict the outcome of the game. Our group wants to create a model that will be able to predict whether or not a team wins the NBA championship given the team’s statistics during the NBA finals game. We want to find weights for each statistic that can show us how important each statistic is to predicting the overall winner, which helps our group conduct a greater analysis of how different focuses and strategies can affect the outcome of NBA games. Our group believes that certain statistics such as field goal percentage, turnovers, and offensive rebounds will be prevalent in winning NBA teams.
 
-## Data:
+# Data:
 The dataset with which we want to create our model is the NBA Finals Team Stats dataset on Kaggle uploaded by Dave Rosenman. The dataset contains final data from 1980 to 2018, and is divided into two tables. The first table contains the data of each winning team and
 the second contains the losing team. Each observation includes data points like field goals made, field goals attempted, three point shots made, free throws made, total rebounds, assists,
 steals, turnovers, blocks, and many other statistics that will be covered in the data summary. The data takes averages from each game in the series, and its an average of the performance of the team in this category across all the games played in the series.
@@ -36,6 +37,7 @@ library(tidyverse)
 library(broom)
 library(pROC)
 library(plotROC)
+library(rms)
 ```
 
 
@@ -210,6 +212,9 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = PF)) +   geom_histogram(
        title = "Personal Foul Distribution")
 ```
 
+
+# Creating the Model
+
 ## Model Refinement
 
 Now that we have checked that the distributions of the variables are somewhat normal, we can create a model and check the residuals. Our model will be a binomial model (only options are 0 ad 1). The first step will be to plot the residuals of each variable in the model to check the linearity assumption. Then, we will plot the Cook's distance and remove any high-leverage points. Finally, the VIF will be checked and any variables with a high VIF will be removed from the model.
@@ -324,12 +329,31 @@ ggplot(data = model_data, aes(x=seq.int(nrow(model_data)), y=.cooksd)) + geom_po
   geom_hline(yintercept=0.125)
 ```
 
-It is obvious that there are two high-leverage data points. If we use a threshold of 0.125, we can eliminate these two high-leverage points to make the model better at prediction.
+It is obvious that there are two high-leverage data points. If we use a threshold of 0.125, we can eliminate these two high-leverage points to make the model better at prediction. After this, the model must be trained on the newly-filtered data.
 
 ```{r}
 
 filter_data <- filter(model_data, .cooksd < 0.125)
 
+filter_data <- select(filter_data, 1:15)
+
+filter_model <- glm(win ~ PTS + FG + FGA + FGP + TP + TPA + TPP + ORB + DRB + AST + STL + BLK + TOV + PF, filter_data, family=binomial)
+
+summary(filter_model)
+
+filter_data <- augment(filter_model, filter_data)
+
 ```
 
-The next step is to check how the variables interact with each other. 
+We must first re_train the model on the filter data The next step is to check how the variables interact with each other. To measure this, we want to calculate the Variable Inflation Factor, or $VIF$. 
+
+```{r}
+
+vif(filter_model)
+
+```
+
+These values for VIF are extremely high because there are variables that measure similar statistics. However, because there are columns like ```FG```, ```FGA```, and ```FGP``` which represent field goals made, field goal attempts, and field goal percentage; a high VIF is not a concern for these variables. The same logic can be applied to ```TP```, ```TPA``` and ```TPP```, which measure the three point attempts and the three point percentage. Therefore, we will proceed with measuring the success of the model. 
+
+## Model Assessment and Prediction
+
