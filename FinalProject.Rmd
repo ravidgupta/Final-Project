@@ -210,7 +210,9 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = PF)) +   geom_histogram(
        title = "Personal Foul Distribution")
 ```
 
-Now that we have checked that the distributions of the variables are somewhat normal, we can create a model and check the residuals. Our model will be a binomial model (only options are 0 ad 1). 
+## Model Refinement
+
+Now that we have checked that the distributions of the variables are somewhat normal, we can create a model and check the residuals. Our model will be a binomial model (only options are 0 ad 1). The first step will be to plot the residuals of each variable in the model to check the linearity assumption. Then, we will plot the Cook's distance and remove any high-leverage points. Finally, the VIF will be checked and any variables with a high VIF will be removed from the model.
 
 ```{r}
 
