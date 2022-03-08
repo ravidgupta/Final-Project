@@ -3,7 +3,7 @@
 
 Data Dictionary
 	
-Wins - whether the team won(1) or lost(0)
+Wins - whether the team won(1) or lost(0) \newline
 Home - whether the team was playing at home(1) or away(1)
 MP - total minutes played in the game
 FG - number of field goals made
