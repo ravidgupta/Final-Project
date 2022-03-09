@@ -83,6 +83,11 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = PTS)) +   geom_histogram
        y = "Count", 
        title = "Point Distribution")
 ```
+
+Summary of Points:
+```{r}
+summary(useful_data$PTS)
+```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = FG)) +   geom_histogram(binwidth = 2) + 
   labs(x = "FG", 
@@ -92,6 +97,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = FG)) +   geom_histogram(
   labs(x = "FG", 
        y = "Count", 
        title = "FG Made Distribution")
+```
+Summary of Field Goals:
+```{r}
+summary(useful_data$FG)
 ```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = FGA)) +   geom_histogram(binwidth = 3) + 
@@ -103,6 +112,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = FGA)) +   geom_histogram
        y = "Count", 
        title = "FG Attempted Distribution")
 ```
+Summary of Field Goal Attempts:
+```{r}
+summary(useful_data$FGA)
+```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = FGP)) +   geom_histogram(binwidth = 2) + 
   labs(x = "FGP", 
@@ -112,6 +125,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = FGP)) +   geom_histogram
   labs(x = "FGP", 
        y = "Count", 
        title = "FG Percentage Distribution")
+```
+Summary of Field Goal Percentage:
+```{r}
+summary(useful_data$FGP)
 ```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = TP)) +   geom_histogram(binwidth = 2) + 
@@ -123,6 +140,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = TP)) +   geom_histogram(
        y = "Count", 
        title = "Three Point Distribution")
 ```
+Summary of Three Pointers:
+```{r}
+summary(useful_data$TP)
+```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = TPA)) +   geom_histogram(binwidth = 3) + 
   labs(x = "TPA", 
@@ -132,6 +153,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = TPA)) +   geom_histogram
   labs(x = "TPA", 
        y = "Count", 
        title = "TP Attempted Distribution")
+```
+Summary of Three Point Attempts:
+```{r}
+summary(useful_data$TPA)
 ```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = TPP)) +   geom_histogram(binwidth = 4) + 
@@ -143,6 +168,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = TPP)) +   geom_histogram
        y = "Count", 
        title = "TP Percentage Distribution")
 ```
+Summary of Three Point Percentage:
+```{r}
+summary(useful_data$TPP)
+```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = ORB)) +   geom_histogram(binwidth = 2) + 
   labs(x = "ORB", 
@@ -152,6 +181,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = ORB)) +   geom_histogram
   labs(x = "ORB", 
        y = "Count", 
        title = "Offensive Rebounds Distribution")
+```
+Summary of Offensive Rebounds:
+```{r}
+summary(useful_data$ORB)
 ```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = DRB)) +   geom_histogram(binwidth = 2) + 
@@ -163,6 +196,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = DRB)) +   geom_histogram
        y = "Count", 
        title = "Defensive Rebound Distribution")
 ```
+Summary of Defensive Rebounds:
+```{r}
+summary(useful_data$DRB)
+```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = AST)) +   geom_histogram(binwidth = 2) + 
   labs(x = "AST", 
@@ -172,6 +209,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = AST)) +   geom_histogram
   labs(x = "AST", 
        y = "Count", 
        title = "Assists Distribution")
+```
+Summary of Assists:
+```{r}
+summary(useful_data$AST)
 ```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = STL)) +   geom_histogram(binwidth = 1) + 
@@ -183,6 +224,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = STL)) +   geom_histogram
        y = "Count", 
        title = "Steals Distribution")
 ```
+Summary of Steals:
+```{r}
+summary(useful_data$STL)
+```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = BLK)) +   geom_histogram(binwidth = 1) + 
   labs(x = "BLK", 
@@ -192,6 +237,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = BLK)) +   geom_histogram
   labs(x = "BLK", 
        y = "Count", 
        title = "Block Distribution")
+```
+Summary of Blocks:
+```{r}
+summary(useful_data$BLK)
 ```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = TOV)) +   geom_histogram(binwidth = 2) + 
@@ -203,6 +252,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = TOV)) +   geom_histogram
        y = "Count", 
        title = "Turnovers Distribution")
 ```
+Summary of Turnovers:
+```{r}
+summary(useful_data$TOV)
+```
 ```{r, fig.dim=c(3,2)}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = PF)) +   geom_histogram(binwidth = 2) + 
   labs(x = "PF", 
@@ -212,6 +265,10 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = PF)) +   geom_histogram(
   labs(x = "PF", 
        y = "Count", 
        title = "Personal Foul Distribution")
+```
+Summary of Personal Fouls:
+```{r}
+summary(useful_data$PF)
 ```
 
 
