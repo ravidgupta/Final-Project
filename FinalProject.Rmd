@@ -13,77 +13,79 @@ knitr::opts_chunk$set(echo = TRUE)
 # Background:
 Every year, the National Basketball Association (NBA) ends the season with a series of championship games between the two best teams in the league. The series is a best-of-7, where the first team to win 4 games is the winner of the series. The championship is a very important accolade, both teams and players are compared by the number of championships they have won. In these comparisons, statistics like field goal percentage, offensive rebounds, steals, and blocks can be used to determine a team’s performance and be an indicator of how much better one team is than another. 
 
-Statistics in the NBA are highly analyzed, very often before a championship game to try to predict the outcome of the game. Our group wants to create a model that will be able to predict whether or not a team wins the NBA championship given the team’s statistics during the NBA finals game. We want to find weights for each statistic that can show us how important each statistic is to predicting the overall winner, which helps our group conduct a greater analysis of how different focuses and strategies can affect the outcome of NBA games. Our group believes that certain statistics such as field goal percentage, turnovers, and offensive rebounds will be prevalent in winning NBA teams.
+Statistics in the NBA are highly analyzed, very often with the goal of assessing which areas a team can improve upon. Our group wants to create a model that will be able to tell us which key statistics from the NBA Championship series from 1980-2018 were important in deciding the championship. More specifically, we want to find weights for each statistic that can show us how important each statistic is to predicting the overall winner, which helps our group conduct a greater analysis of how different focuses and strategies can affect the outcome of NBA games. 
+
+We will be using the NBA Finals Team Stats Dataset, which has been analyzed and used to create models by several Kaggle Users. One project to note is a report written by Ziyu Liu called "Three pointers win championships", in which the author creates a model to see if the number of three point shots made by a team can predict whether or not the team wins the championship. In the study, the model achieves an accuracy of 59%. This tells us that, while three point shots are important, more statistics are required to be able to create a more accurate model.
+
+Another example of analyzing NBA championship data comes from the article "Stat of the Week: How champions are built in the NBA" by Ryan Blackburn. In this article, Blackburn specifically analyzes the Denver Nuggets, and why the team has never won an NBA championship. In the paper, Blackburn ranks teams by offense, defense, and net-rating, and points out that only five out of past 20 championship winners have ranked outside of the top 3 teams in net-rating. This leads us to believe that a team needs both impressive defensive statistics and offensive statistics in order to win an NBA championship.
+
+Given these studies and our group's own knowledge of the NBA, we believe that both offensive statistics like field goals, three pointers, offensive rebounds; and defensive statistics like steals and defensive rebounds will have a high impact on whether or not a team wins the championship.
 
 # Data:
 The dataset with which we want to create our model is the NBA Finals Team Stats dataset on Kaggle uploaded by Dave Rosenman. The dataset contains final data from 1980 to 2018, and is divided into two tables. The first table contains the data of each winning team and
 the second contains the losing team. Each observation includes data points like field goals made, field goals attempted, three point shots made, free throws made, total rebounds, assists, steals, turnovers, blocks, and many other statistics that will be covered in the data summary. The data takes averages from each game in the series, and its an average of the performance of the team in this category across all the games played in the series.
 
-The NBA Finals Team Stats Dataset has been analyzed and used to create models by several Kaggle Users. One project to note is a report written by Ziyu Liu (insert citation here) called "Three pointers win championships", in which the author creates a model to see if the number of three point shots made by a team can predict whether or not the team wins the championship. In the study, the model achieves an accuracy of 59%. This tells us that, while three point shots are important, more statistics are required to be able to create a more accurate model.
 
 In order to create the dataset we are using in this study, we started with two separate datasets, one for all of the series winners (NBA Champions) and one of the runner-ups. We created a new column ```win``` with a 1 if the team won the series and a 0 if the team lost. This will be our predictor variable for the model. Next, we combined the two datsets and randomized the order of the entries. Our goal is to first analyze each of the variables to determine which will be the most useful in creating our model, then going through several iterations of models before choosing the most accurate one. 
 
 
-These are the libraries that will be used to create this model:
-```{r}
+```{r, include=FALSE}
 library(tidyverse)
 library(broom)
 library(pROC)
 library(plotROC)
 library(rms)
 library(caret)
+library(skimr)
 ```
 
 
 
 ## Exploratory Data Analysis
 
-We started by creating the dataset we wish to use for this study (using the process mentioned in the Data section). 
-
-```{r}
+```{r, include=FALSE}
 champs_data <- read_csv("data/champs_series_averages.csv")
 runnerups_data <- read_csv("data/runner_ups_series_averages.csv")
 
 ```
-```{r}
+```{r, include=FALSE}
 champs_data <- champs_data %>%
   mutate(win = "1")
 runnerups_data <- runnerups_data %>%
   mutate(win = "0")
 ```
-```{r}
+```{r, include=FALSE}
 all_data <- rbind(champs_data, runnerups_data)
 ```
 
 
-Next, we eliminated some variables that we did not wish to explore or view the effect they would have on the model. This includes statistics like ```FTA``` (Free Throw Attempts), ```TPA``` (Three Point Attempts), ```BLK``` (Blocks). Some of these statistics describe the attempts to make a point, however the statistics describing how many points were made in that fashion would be a much more accurate tool in the model. Others simply do not happen often enough to quantifiable change the course of a championship series. 
+As mentioned before, we combined the datasets and added a ```win``` variable to tell us whether the team won a championship or not. Since there were over 20 variables, our goal was to choose key variables to analyze that we knew would have an impact on the game. To do this, we eliminated some variables that we did not wish to explore or view the effect they would have on the model. This includes statistics like ```FTA``` (Free Throw Attempts), ```BLK``` (Blocks). While in the game this statistics might be important, having a statistic like Free Throw Attemtps or Blocks without any context about the other team's performance in the same category would most likely not be useful. 
 
-```{r}
+```{r, include=FALSE}
 useful_data = subset(all_data, select = -c(...1,Year, Status, Team, FT, FTA, FTP, TRB) )
-summary(useful_data$FGA)
+
 ```
 
 
 Now, we can start our EDA. First, we check the plots of each variable for both the losers and the winners to make sure each distribution is roughly normal. 
 
 Distribution of Points:
-```{r, fig.dim=c(3,2)}
+```{r, fig.dim=c(3,2), echo=FALSE}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = PTS)) +   geom_histogram(binwidth = 4) + 
   labs(x = "Points", 
        y = "Count", 
-       title = "Point Distribution")
+       title = "Point Distribution for Champs")
 ggplot(data = useful_data %>% filter(win == 0), aes(x = PTS)) +   geom_histogram(binwidth = 4) + 
   labs(x = "Points", 
        y = "Count", 
-       title = "Point Distribution")
+       title = "Point Distribution for Runner-Ups")
 ```
-
 Summary of Points:
-```{r}
+```{r, echo=FALSE}
 summary(useful_data$PTS)
 ```
 Distribution of Field Goals Made:
-```{r, fig.dim=c(3,2)}
+```{r, fig.dim=c(3,2), echo=FALSE}
 ggplot(data = useful_data %>% filter(win == 1), aes(x = FG)) +   geom_histogram(binwidth = 2) + 
   labs(x = "FG", 
        y = "Count", 
@@ -94,7 +96,7 @@ ggplot(data = useful_data %>% filter(win == 0), aes(x = FG)) +   geom_histogram(
        title = "FG Made Distribution")
 ```
 Summary of Field Goals:
-```{r}
+```{r, echo=FALSE}
 summary(useful_data$FG)
 ```
 
@@ -107,7 +109,8 @@ The distributions and summaries of the other variables can be seen in the append
 
 Our model will be a binomial model (only options are 0 ad 1). The first step will be to plot the residuals of each variable in the model to check the linearity assumption. Then, we will plot the Cook's distance and remove any high-leverage points. Finally, the VIF will be checked and any variables with a high VIF will be removed from the model.
 
-```{r}
+Summary of Model:
+```{r, echo=FALSE}
 
 useful_data$win <- as.factor(useful_data$win)
 
@@ -116,21 +119,21 @@ model <- glm(win ~ PTS + FG + FGA + FGP + TP + TPA + TPP + ORB + DRB + AST + STL
 summary(model)
 ```
 
-```{r}
+```{r, include=FALSE}
 
 model_data <- augment(model, useful_data)
-head(model_data)
+
 ```
 
 Residual Plot of Points:
-```{r, fig.dim=c(3,2)}
+```{r, fig.dim=c(3,2), echo=FALSE}
 ggplot(data = model_data, aes(x=.resid, y=PTS)) + geom_point() +
   labs(x="Residuals",
        y="Points",
        title="Residual Plot of Points")
 ```
 Residual Plot of Field Goals:
-```{r, fig.dim=c(3,2)}
+```{r, fig.dim=c(3,2), echo=FALSE}
 ggplot(data = model_data, aes(x=.resid, y=FG)) + geom_point() +
   labs(x="Residuals",
        y="Field Goals",
@@ -139,7 +142,7 @@ ggplot(data = model_data, aes(x=.resid, y=FG)) + geom_point() +
 
 The residual plots for each variable appear to be random and evenly dispersed (the rest can be seen in the appendix), which means that the linearity assumption is satisfied. Before we can test the accuracy of the model, we must also explore how these observations affect the model, and how the variables used in the model affect each other. First, we can plot the leverage (.cooksd) of each observation to see if there are any high-leverage data points. 
 
-```{r, fig.dim=c(3,2)}
+```{r, fig.dim=c(3,2), echo=FALSE}
 ggplot(data = model_data, aes(x=seq.int(nrow(model_data)), y=.cooksd)) + geom_point() + 
   labs(x="Observation",
        y="Cook's Distance",
@@ -147,9 +150,10 @@ ggplot(data = model_data, aes(x=seq.int(nrow(model_data)), y=.cooksd)) + geom_po
   geom_hline(yintercept=0.125)
 ```
 
-It is obvious that there are two high-leverage data points. If we use a threshold of 0.125, we can eliminate these two high-leverage points to make the model better at prediction. After this, the model must be trained on the newly-filtered data.
+It is obvious that there are two high-leverage data points. If we use a threshold of 0.125, we can eliminate these two high-leverage points to make the model better at prediction. After this, the model must be trained on the newly-filtered data. Then, we re-train our model on the now filtered dataset. 
 
-```{r}
+Summary of Model on Filtered Dataset:
+```{r, echo=FALSE}
 
 filter_data <- filter(model_data, .cooksd < 0.125)
 
@@ -164,17 +168,17 @@ filter_data <- augment(filter_model, filter_data)
 
 ```
 
-We must first re_train the model on the filter data The next step is to check how the variables interact with each other. To measure this, we want to calculate the Variable Inflation Factor, or $VIF$. 
+The next step is to check how the variables interact with each other. To measure this, we want to calculate the Variable Inflation Factor, or $VIF$. 
 
-```{r}
+```{r, echo=FALSE}
 
 vif(filter_model)
 
 ```
 
-Some of the variables have a very high $VIF$, so we can only include certain variables to keep the score lower. To see which variables are better included and not included, we must create multiple models and assess which one has the best accuracy. We can leave all of the variables who's $VIF$ is lower than 10, but the others must be removed for higher accuracy. We will create three models, one that will include only the Field Goals made and the Three Point shots made; one that will only include the Field Goal percentage and Three Point percentage; and finally an attempts model that will include the number of Field Goal attempts and Three Point attempts. 
+Some of the variables have a very high $VIF$, so we can only include certain variables to keep the score lower. To see which variables are better included and not included, we must create multiple models and assess which one has the best accuracy. We can leave all of the variables who's $VIF$ is lower than 10, but the others must be removed for higher accuracy. We will create three models, one that will include only the Field Goals made and the Three Point shots made; one that will only include the Field Goal percentage and Three Point percentage; and finally an attempts model that will include the number of Field Goal attempts and Three Point attempts. The, we check the VIF of each model to make sure that it has been reduced (that each variable has a $VIF$ lower than 10)
 
-```{r}
+```{r, include=FALSE}
 
 points_model <- glm(win ~ PTS + FG + TP + ORB + DRB + AST + STL + BLK + TOV + PF, 
                     data = filter_data, na.action = na.omit, family = binomial)
@@ -186,213 +190,76 @@ attempts_model <- glm(win ~ PTS + FGA + TPA + ORB + DRB + AST + STL + BLK + TOV 
                     data = filter_data, na.action = na.omit, family = binomial)
 ```
 
-Since we created three new models, we need to repeat the same steps we did before with our previous model. We need to check for high leverage points and the Variable Inflation Factor.
 
 Points Model:
-```{r}
-points_data <- filter_data
-ggplot(data = points_model, aes(x=seq.int(nrow(points_data)), y=.cooksd)) + geom_point() + 
-  labs(x="Observation",
-       y="Cook's Distance",
-       title="Cook's Distance of each Observation") + 
-  geom_hline(yintercept=0.125)
-```
-```{r}
-points_data <- filter(points_data, .cooksd < 0.125)
 
-points_data <- select(points_data, 1:15)
-
-points_model <- glm(win ~ PTS + FG + TP + ORB + DRB + AST + STL + BLK + TOV + PF, points_data, family=binomial)
-
-summary(points_model)
-
-points_data <- augment(points_model, points_data)
-```
-```{r}
+```{r, echo=FALSE}
 vif(points_model)
 ```
 
 Percentage Model:
-```{r}
-percentage_data <- filter_data
-ggplot(data = percentage_model, aes(x=seq.int(nrow(percentage_data)), y=.cooksd)) + geom_point() + 
-  labs(x="Observation",
-       y="Cook's Distance",
-       title="Cook's Distance of each Observation") + 
-  geom_hline(yintercept=0.125)
-```
 
-```{r}
-percentage_data <- filter(percentage_data, .cooksd < 0.125)
 
-percentage_data <- select(percentage_data, 1:15)
-
-percentage_model <- glm(win ~ PTS + FGP + TPP + ORB + DRB + AST + STL + BLK + TOV + PF, percentage_data, family=binomial)
-
-summary(percentage_model)
-
-percentage_data <- augment(percentage_model, percentage_data)
-```
-```{r}
+```{r, echo=FALSE}
 vif(percentage_model)
 ```
 
 Attempts Model:
-```{r}
-attempts_data <- filter_data
-ggplot(data = attempts_model, aes(x=seq.int(nrow(attempts_data)), y=.cooksd)) + geom_point() + 
-  labs(x="Observation",
-       y="Cook's Distance",
-       title="Cook's Distance of each Observation") + 
-  geom_hline(yintercept=0.125)
-```
-```{r}
-attempts_data <- filter(attempts_data, .cooksd < 0.125)
 
-attempts_data <- select(attempts_data, 1:15)
-
-attempts_model <- glm(win ~ PTS + FGA + TPA + ORB + DRB + AST + STL + BLK + TOV + PF, attempts_data, family=binomial)
-
-summary(attempts_model)
-
-attempts_data <- augment(attempts_model, attempts_data)
-```
-```{r}
+```{r, echo=FALSE}
 vif(attempts_model)
 ```
 
-To evaluate the accuracy of each model, we will train each model to our dataset to make predictions and measure the accuracy of these predictions. To do this, for each model we will plot the ROC curve, find the ideal threshold of each model, create predictions, then measure the accuracy. 
+To evaluate the accuracy of each model, we will train each model to our dataset to make predictions and measure the accuracy of these predictions. We believe that the best way to evaluate the models is to calculate the $AIC$, or the Akaike information criterion.  
 
 Points Model:
-```{r, fig.dim=c(3,2)}
+```{r, echo=FALSE}
 
-points_roc <- roc(points_data, win, .fitted, plot=TRUE)
-
-```
-```{r}
-
-threshold <- coords(points_roc, "best", ret = "threshold")
-print(threshold)
-```
-
-The ideal threshold for the points model has been shown as ```0.2346563```. Using this threshold, we can create a confusion matrix and draw conclusions about the accuracy of the model. 
-
-```{r}
-points_data <- mutate(points_data, pred = ifelse(.fitted > 0.2346563, 1, 0))
-
-points_data$pred <- as.factor(points_data$pred)
-
-confusionMatrix(points_data$pred, points_data$win)
+AIC(points_model)
 
 ```
 
 Percentage Model:
-```{r, fig.dim=c(3,2)}
+```{r, echo=FALSE}
 
-percentage_roc <- roc(percentage_data, win, .fitted, plot=TRUE)
-
-```
-```{r}
-
-threshold <- coords(percentage_roc, "best", ret = "threshold")
-print(threshold)
-```
-
-The ideal threshold for the percentage model has been shown as ```0.4107141```. Using this threshold, we can create a confusion matrix and draw conclusions about the accuracy of the model. 
-
-```{r}
-percentage_data <- mutate(percentage_data, pred = ifelse(.fitted > 0.4107141, 1, 0))
-
-percentage_data$pred <- as.factor(percentage_data$pred)
-
-confusionMatrix(percentage_data$pred, percentage_data$win)
+AIC(percentage_model)
 
 ```
+
 
 Attempts Model:
-```{r, fig.dim=c(3,2)}
+```{r, echo=FALSE}
 
-attempts_roc <- roc(attempts_data, win, .fitted, plot=TRUE)
-
-```
-```{r}
-
-threshold <- coords(attempts_roc, "best", ret = "threshold")
-print(threshold)
+AIC(attempts_model)
 ```
 
-The ideal threshold for the percentage model has been shown as ```-1.059852```. Using this threshold, we can create a confusion matrix and draw conclusions about the accuracy of the model. 
 
-```{r}
-attempts_data <- mutate(attempts_data, pred = ifelse(.fitted > -1.059852, 1, 0))
+We can see that the AIC of the attempts model is significantly lower than the AIC of the other two models. Since a lower AIC is the result of a better fitting model for the data, we will use only the attempts model in the process of refining our model. 
 
-attempts_data$pred <- as.factor(attempts_data$pred)
+Since the VIF of the model was close to 10, we want to check whether or not including the ```PTS``` variable in the model makes the model better or worse. To do this, we will create two models from our attempts model, the first including points and the second not including points. We will chose whichever model has the lower AIC to be our final model.
 
-confusionMatrix(attempts_data$pred, attempts_data$win)
-
-```
-The accuracy of the points model was found to be 72.46%. Using this same method for the other models, we found that the accuracy of the percentage model was 84.06% and the accuracy of the attempts model was 85.51%. In this case, solely using the attempts of field goals and three pointers made the model more accurate. We will use the attempts model as our current model for the next step of tests.
-Since the VIF was close to 10 for all the models with points, we are going to try a model without PTS. We will use the attempts model since it produced the highest accuracy from our previous models
-
-No points Model:
-```{r}
+AIC of No Points Model:
+```{r, include=FALSE}
 nopoints_model <- glm(win ~ FGA + TPA + ORB + DRB + AST + STL + BLK + TOV + PF, 
                     data = filter_data, na.action = na.omit, family = binomial)
 ```
-```{r}
-nopoints_data <- filter_data
-ggplot(data = nopoints_model, aes(x=seq.int(nrow(nopoints_data)), y=.cooksd)) + geom_point() + 
-  labs(x="Observation",
-       y="Cook's Distance",
-       title="Cook's Distance of each Observation") + 
-  geom_hline(yintercept=0.125)
-```
-```{r}
-nopoints_data <- filter(nopoints_data, .cooksd < 0.125)
 
-nopoints_data <- select(nopoints_data, 1:15)
-
-nopoints_model <- glm(win ~ FGA + TPA + ORB + DRB + AST + STL + BLK + TOV + PF, nopoints_data, family=binomial)
-
-summary(nopoints_model)
-
-nopoints_data <- augment(nopoints_model, nopoints_data)
-```
-```{r}
-vif(nopoints_model)
-```
-```{r, fig.dim=c(3,2)}
-
-nopoints_roc <- roc(nopoints_data, win, .fitted, plot=TRUE)
-
-```
-```{r}
-
-threshold <- coords(nopoints_roc, "best", ret = "threshold")
-print(threshold)
-```
-```{r}
-nopoints_data <- mutate(nopoints_data, pred = ifelse(.fitted > -0.3855574, 1, 0))
-
-nopoints_data$pred <- as.factor(nopoints_data$pred)
-
-confusionMatrix(nopoints_data$pred, nopoints_data$win)
-
+```{r, echo=FALSE}
+AIC(nopoints_model)
 ```
 
-The accuracy of this model is 87.84%. This model provided the best accuracy and passed all the assumptions. We decided that this model will be our final model and we can make conclusions based on this model.
+The AIC of the points model has already been calculated (```79.57669```), so we know that the points model is a better fit so this will be our final model. So we consider our attempts model, with an AIC of ```79.57669``` to be our final model.
 
-```{r}
-final_model <- attempts_model
-```
+
 
 # Conclusion
 
 ```{r}
+final_model <- attempts_model
 summary(final_model)
 ```
 
-By using this model, we can predict whether or not an NBA team won a finals series given their statistics from the series with an accuracy of 87.84%, making the model useful (better than guessing win or lose for each year). 
+Our final model had an AIC of 79.57669. Using the coefficients of the final model, we can see that Offensive Rebounds and Steals are the two most important factors in whether or not a team from 1980-2018 won the NBA championship. 
 
 ## Observations
 
@@ -404,7 +271,7 @@ For example, the coefficients for field goals attempted (```FGA```) is negative,
 
 Some variables with high positive coefficients include: Points (```ORB```), Offensive Rebounds (```ORB```), Defensive Rebounds (```DRB```), and Steals (```STL```). These all seem to be good at indicating whether or not teams won the series, which is fascinating because they cover different aspects of the game. A team cannot solely rely on shooting, defense, or size (in the case of offensive and defensive rebounds) to win a championship; they must have all aspects of the game.
 
-The two variables with low positive coefficients include: Field Goals Attempted (```FGA```) and Turnovers (```TOV```). These also seem good in indicating whether or not teams won the series. Having low turnovers is good as it will give you more opportunities to shoot the ball and prevent free baskets. The other variables don't have that big of an impact on the final result, but that doesn't mean they don't matter at all.
+The two variables with low negative coefficients include: Field Goals Attempted (```FGA```) and Turnovers (```TOV```). These also seem good in indicating whether or not teams won the series. Having low turnovers is good as it will give you more opportunities to shoot the ball and prevent free baskets. The other variables don't have that big of an impact on the final result, but that does not mean those variables do not impact the final result of a championship.
 
 
 # Appendix
