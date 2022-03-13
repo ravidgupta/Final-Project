@@ -272,7 +272,8 @@ The AIC of the points model has already been calculated (```79.57669```), so we 
 
 # Conclusion
 
-```{r}
+Final Model:
+```{r, echo=FALSE}
 final_model <- attempts_model
 tidy(final_model, conf.int = TRUE, exponentiate = FALSE) %>%
   kable(digits = 3, format = "markdown")
