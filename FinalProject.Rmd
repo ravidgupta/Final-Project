@@ -1,5 +1,5 @@
 ---
-title: "Predicting NBA Championship Winners Using Data from Past Championship Series"
+title: "What Statistics Make a Team NBA Champions"
 author: "Ravi G and Rohit K"
 date: "3/8/2022"
 output:
@@ -285,7 +285,7 @@ AIC(backwards_model)
 
 The VIF of our model has all the variables under 10, so our model does not have multicollinearity. The AIC of the attempts model has been calculated at (```77.37076```), so we know this model is the best fit we have so far. This will be our final model.
 
-# Conclusion
+# Limitations and Conclusion
 
 ```{r, echo=FALSE}
 final_model <- backwards_model
@@ -295,7 +295,7 @@ tidy(final_model, conf.int = TRUE, exponentiate = FALSE) %>%
 
 Our final model had an AIC of 77.37076. Using the coefficients of the final model, we can see that all five of these variables are the most important factors in whether or not a team from 1980-2018 won the NBA championship. It is important to note that, because this data does not cover years in the NBA before 1980 and after 2018, that using the model to draw conclusions about NBA championships in those years might not have accurate results due to changes in how the NBA plays basketball over time. Also, this model is not meant to serve as a predictor for who will win future NBA championships, only to analyze statistics from championship series' covered by the data.
 
-## Observations
+# Observations
 
 We found it interesting that the attempts  provided the most accurate model for predicting who won the series. It intuitively makes sense that the field goals or three pointers scored matter more than attempts because basketball games are decided by the score, not the attempts; however, attempts might signal how ineffective a team's offense really can be.
 
