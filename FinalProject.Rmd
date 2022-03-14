@@ -287,7 +287,7 @@ The VIF of our model has all the variables under 10, so our model does not have 
 
 # Conclusion
 
-```{r}
+```{r, echo=FALSE}
 final_model <- backwards_model
 tidy(final_model, conf.int = TRUE, exponentiate = FALSE) %>%
   kable(digits = 3, format = "markdown")
@@ -297,13 +297,13 @@ Our final model had an AIC of 77.37076. Using the coefficients of the final mode
 
 ## Observations
 
-We found it interesting that the attempts of field goals provided the most accurate model for predicting who won the series. It intuitively makes sense that the field goals scored matter more than attempts because basketball games are decided by the score, not the attempts; however, attempts might signal how ineffective a team's offense really can be.
+We found it interesting that the attempts  provided the most accurate model for predicting who won the series. It intuitively makes sense that the field goals or three pointers scored matter more than attempts because basketball games are decided by the score, not the attempts; however, attempts might signal how ineffective a team's offense really can be.
 
 It is worth noting that, while the coefficients for most variables make sense (ie. turnovers having a negative coefficient and points having a positive coefficient), others have a surprising effect on the model. 
 
 For example, the coefficients for field goals attempted (```FGA```) is negative, implying that more field goal attempts indicate a lesser likelihood that a team won the game. This can be attributed to the fact that basketball is about making baskets rather than taking shots. If you aren't making these shots you are taking, you most likely won't win the game. 
 
-Some variables with high positive coefficients include: Points (```PTS```), Offensive Rebounds (```ORB```), Defensive Rebounds (```DRB```), and Steals (```STL```). These all seem to be good at indicating whether or not teams won the series, which is fascinating because they cover different aspects of the game. A team cannot solely rely on shooting, defense, or size (in the case of offensive and defensive rebounds) to win a championship; they must have all aspects of the game.
+Some variables with high positive coefficients include: Offensive Rebounds (```ORB```), Defensive Rebounds (```DRB```), and Steals (```STL```). These all seem to be good at indicating whether or not teams won the series, which is fascinating because they cover different aspects of the game. A team cannot solely rely on shooting, defense, or size (in the case of offensive and defensive rebounds) to win a championship; they must have all aspects of the game.
 
 The only variable with a low negative coefficient that we kept in our model was Field Goals Attempted (```FGA```). This also seems good in indicating whether or not teams won the series. Having low field goals attempted most likely means you made more of your baskets. The other variables don't have that big of an impact on the final result, but that does not mean those variables do not impact the final result of a championship.
 
