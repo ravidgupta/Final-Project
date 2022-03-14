@@ -293,7 +293,7 @@ tidy(final_model, conf.int = TRUE, exponentiate = FALSE) %>%
   kable(digits = 3, format = "markdown")
 ```
 
-Our final model had an AIC of 77.37076. Using the coefficients of the final model, we can see that all five of these variables are the most important factors in whether or not a team from 1980-2018 won the NBA championship. 
+Our final model had an AIC of 77.37076. Using the coefficients of the final model, we can see that all five of these variables are the most important factors in whether or not a team from 1980-2018 won the NBA championship. It is important to note that, because this data does not cover years in the NBA before 1980 and after 2018, that using the model to draw conclusions about NBA championships in those years might not have accurate results due to changes in how the NBA plays basketball over time. Also, this model is not meant to serve as a predictor for who will win future NBA championships, only to analyze statistics from championship series' covered by the data.
 
 ## Observations
 
