@@ -116,13 +116,17 @@ The distributions and summaries of the other variables can be seen in the append
 
 ## Model Refinement
 
-Our model will be a binomial model (only options are 0 ad 1). The first step will be to plot the residuals of each variable in the model to check the linearity assumption. Then, we will plot the Cook's distance and remove any high-leverage points. Finally, the VIF will be checked and any variables with a high VIF will be removed from the model.
+Our model will be a binomial model (only options are 0 ad 1). We want to make sure that all the different variables have been scaled before we measure how important they are in relation to each other. The next step will be to plot the residuals of each variable in the model to check the linearity assumption. Then, we will plot the Cook's distance and remove any high-leverage points. Finally, the VIF will be checked and any variables with a high VIF will be removed from the model.
 
 Summary of Model:
 
 ```{r, echo=FALSE}
 
 useful_data$win <- as.factor(useful_data$win)
+
+
+useful_data <- useful_data %>% mutate_at(c("PTS", "FG", "FGA", "FGP", "TP", "TPA", "TPP", "ORB", "DRB", "AST", "STL", "BLK", "TOV", "PF"), ~(scale(.) %>% as.vector))
+
 
 model <- glm(win ~ PTS + FG + FGA + FGP + TP + TPA + TPP + ORB + DRB + AST + STL + BLK + TOV + PF, useful_data, family=binomial)
 
@@ -303,7 +307,7 @@ It is worth noting that, while the coefficients for most variables make sense (i
 
 For example, the coefficients for field goals attempted (```FGA```) is negative, implying that more field goal attempts indicate a lesser likelihood that a team won the game. This can be attributed to the fact that basketball is about making baskets rather than taking shots. If you aren't making these shots you are taking, you most likely won't win the game. 
 
-Some variables with high positive coefficients include: Offensive Rebounds (```ORB```), Defensive Rebounds (```DRB```), and Steals (```STL```). These all seem to be good at indicating whether or not teams won the series, which is fascinating because they cover different aspects of the game. A team cannot solely rely on shooting, defense, or size (in the case of offensive and defensive rebounds) to win a championship; they must have all aspects of the game.
+Some variables with high positive coefficients include: Points (```PTS```), Offensive Rebounds (```ORB```), and Steals (```STL```). These all seem to be good at indicating whether or not teams won the series, which is fascinating because they cover different aspects of the game. A team cannot solely rely on scoring, defense, or size (in the case of offensive and defensive rebounds) to win a championship; they must have all aspects of the game.
 
 The only variable with a low negative coefficient that we kept in our model was Field Goals Attempted (```FGA```). This also seems good in indicating whether or not teams won the series. Having low field goals attempted most likely means you made more of your baskets. The other variables don't have that big of an impact on the final result, but that does not mean those variables do not impact the final result of a championship.
 
