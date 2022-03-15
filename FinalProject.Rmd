@@ -116,7 +116,7 @@ The distributions and summaries of the other variables can be seen in the append
 
 ## Model Refinement
 
-Our model will be a binomial model (only options are 0 ad 1). We want to make sure that all the different variables have been scaled before we measure how important they are in relation to each other. The next step will be to plot the residuals of each variable in the model to check the linearity assumption. Then, we will plot the Cook's distance and remove any high-leverage points. Finally, the VIF will be checked and any variables with a high VIF will be removed from the model.
+Our model will be a binomial model, since the only options are 0 and 1. We want to make sure that all the different variables have been scaled before we measure how important they are in relation to each other (summary of scaled data can be seen in the Appendix). The next step will be to plot the residuals of each variable in the model to check the linearity assumption. Then, we will plot the Cook's distance and remove any high-leverage points. Finally, the VIF will be checked and any variables with a high VIF will be removed from the model.
 
 Summary of Model:
 
@@ -543,6 +543,16 @@ Summary of Personal Fouls:
 ```{r, echo=FALSE}
 summary(useful_data$PF)
 ```
+
+
+## Summary of Scaled Data
+
+```{r, echo=FALSE}
+
+summary(useful_data)
+
+```
+
 
 ## Residuals of Each Variable
 Residual Plot of Field Goal Attempts:
